@@ -37,14 +37,21 @@ async function run() {
     // create = post
     app.post("/upload-book", async (req, res) => {
       const data = req.body;
-      console.log(data);
+      // console.log(data);
       const result = await bookCollection.insertOne(data);
       res.send(result);
     });
 
     // get = read
     app.get("/allBooks", async (req, res) => {
-      const books = await bookCollection.find().toArray();
+      const { authorName } = req.query;
+      console.log(authorName);
+      let query = {};
+      if (authorName) {
+        query = { authorName };
+      }
+      const books = await bookCollection.find(query).toArray();
+      // console.log(books);
       res.send(books);
     });
 
@@ -65,9 +72,21 @@ async function run() {
 
     // delete
     app.delete("/book/:id", async (req, res) => {
+      try {
+        const id = req.params.id;
+        const query = { _id: new ObjectId(id) };
+        const result = await bookCollection.deleteOne(query);
+        res.send(result);
+      } catch (error) {
+        res.send(error.message);
+      }
+    });
+
+    // book details api
+    app.get("/book/:id", async (req, res) => {
       const id = req.params.id;
-      const query = { _id: new ObjectId(id) };
-      const result = await bookCollection.deleteOne(query);
+      const filter = { _id: new ObjectId(id) };
+      const result = await bookCollection.findOne(filter);
       res.send(result);
     });
 
